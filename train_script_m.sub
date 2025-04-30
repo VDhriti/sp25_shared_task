@@ -5,7 +5,7 @@
 #SBATCH -e bertweet_medium_%j.err       # Std-err  file
 #SBATCH --mail-type=END,FAIL            # Email on completion / failure
 #SBATCH --mail-user=dv278@cornell.edu   # <—- replace with your NetID-mail
-#SBATCH --partition=claire-interactive  # Same partition you used before*
+#SBATCH --partition=claire  # Same partition you used before*
 #SBATCH --gres=gpu:1                    # 1 generic GPU (or gpu:1080ti:1, etc.)
 #SBATCH --mem=16G                       # 16 GB RAM (same as --mem 16000)
 #SBATCH --time=48:00:00                 # Runtime limit 48 h
