@@ -143,7 +143,7 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=2,      # acts like batch_size double
     logging_steps=50,
     # extra optimization
-    dataloader_num_workers=4,
+    # dataloader_num_workers=4,
 )
 
 trainer = Trainer(
