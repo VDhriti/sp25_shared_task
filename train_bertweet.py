@@ -11,30 +11,23 @@ print(time(), "STARTING IMPORTS")
 
 
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 import json
 import os
 from glob import glob
-from collections import Counter, defaultdict
-from typing import List, Dict
+from typing import List
 
 import torch
-import torch.nn as nn
 from torch.utils.data import Dataset
 
 from transformers import (
     AutoTokenizer,
-    AutoModel,
     Trainer,
     TrainingArguments,
     DataCollatorWithPadding,
-    EvalPrediction,
 )
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from transformers import AutoModel, AutoTokenizer, AutoModelForSequenceClassification, DataCollatorWithPadding
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, DataCollatorWithPadding
 from torch.utils.data import Dataset
-from transformers import pipeline
 
 # METRICS
 def compute_metrics(eval_pred):
