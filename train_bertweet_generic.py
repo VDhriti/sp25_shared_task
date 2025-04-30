@@ -1,13 +1,29 @@
 from datetime import datetime
+import argparse
 
 def time():
     return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
-DATASET = "medium"
+# ---------- argument parsing ----------
+parser = argparse.ArgumentParser(
+    description="Fine-tune BERTweet on one of the shared-task datasets."
+)
+parser.add_argument(            # ① add a *positional* argument
+    "dataset",                  #    (makes the flag mandatory)
+    choices=["easy", "medium", "hard"],
+    help="Which dataset split to train on"
+)
+# If you’d rather have an *optional* flag, use:
+# parser.add_argument("--dataset", default="medium", choices=[...])
+
+args = parser.parse_args()
+
+DATASET = args.dataset          # ② replace the hard-coded string
 SAVE_FOLDER = f"bertweet_large_cr_{DATASET}_{time()}"
 
-print(time(), "STARTING IMPORTS")
+print(time(), f"Training on the {DATASET} dataset")
+
 
 
 import numpy as np

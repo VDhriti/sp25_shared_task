@@ -1,0 +1,29 @@
+#!/bin/bash
+#—— SLURM directives ——————————————————————————————————————————————————
+#SBATCH -J bertweet_easy              # Job name
+#SBATCH -o bertweet_easy_%j.out       # Std-out  file (%j = job-ID)
+#SBATCH -e bertweet_easy_%j.err       # Std-err  file
+#SBATCH --mail-type=END,FAIL            # Email on completion / failure
+#SBATCH --mail-user=dv278@cornell.edu   # <—- replace with your NetID-mail
+#SBATCH --partition=claire-interactive  # Same partition you used before*
+#SBATCH --gres=gpu:1                    # 1 generic GPU (or gpu:1080ti:1, etc.)
+#SBATCH --mem=16G                       # 16 GB RAM (same as --mem 16000)
+#SBATCH --time=48:00:00                 # Runtime limit 48 h
+#SBATCH -N 1                            # One node
+#SBATCH -n 1                            # One CPU task (increase if you use DDP)
+#SBATCH --get-user-env                  # Bring your login environment
+# (add  --cpus-per-task=<k>  if your script uses multiple CPU threads)
+#———— End of #SBATCH lines (do NOT put blank lines above this) —————————
+
+# --- Environment setup ---──────────────────────────────────────────────
+# Load the same modules you see when you run `module list` interactively.
+# Example (comment out if your cluster auto-loads Anaconda):
+# module load anaconda3/2023.03
+
+# Make sure conda is available inside the batch shell
+source ~/.bashrc          # or  source /etc/profile  on some systems
+conda activate venv        # the env you were using
+
+# --- Your actual job ---────────────────────────────────────────────────
+cd /home/dv278/files/sp25_shared_task   # <—- use the full path
+python train_bertweet_generic.py --dataset easy

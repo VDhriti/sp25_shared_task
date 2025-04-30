@@ -26,4 +26,4 @@ conda activate venv        # the env you were using
 
 # --- Your actual job ---────────────────────────────────────────────────
 cd /home/dv278/files/sp25_shared_task   # <—- use the full path
-python train_bertweet_medium.py
+python train_bertweet_generic.py --dataset medium
