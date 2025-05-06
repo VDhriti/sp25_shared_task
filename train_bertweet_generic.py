@@ -1,5 +1,25 @@
 from datetime import datetime
 import argparse
+import numpy as np
+import json
+import os
+from glob import glob
+from typing import List
+
+import torch
+from torch.utils.data import Dataset
+
+from transformers import (
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+    DataCollatorWithPadding,
+)
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, DataCollatorWithPadding
+from torch.utils.data import Dataset
+
+from data_formatting import ChangeDetectionDataset, TripletChangeDetectionDataset
 
 def time():
     return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -20,30 +40,10 @@ parser.add_argument(            # ① add a *positional* argument
 args = parser.parse_args()
 
 DATASET = args.dataset          # ② replace the hard-coded string
-SAVE_FOLDER = f"bertweet_large_cr_{DATASET}_{time()}"
+SAVE_FOLDER = f"bertweet_large_triplets_{DATASET}_{time()}"
 
 print(time(), f"Training on the {DATASET} dataset")
 
-
-
-import numpy as np
-import json
-import os
-from glob import glob
-from typing import List
-
-import torch
-from torch.utils.data import Dataset
-
-from transformers import (
-    AutoTokenizer,
-    Trainer,
-    TrainingArguments,
-    DataCollatorWithPadding,
-)
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, DataCollatorWithPadding
-from torch.utils.data import Dataset
 
 # METRICS
 def compute_metrics(eval_pred):
@@ -70,56 +70,6 @@ def compute_metrics(eval_pred):
         "f1":        f1,
     }
 
-# DATA
-class ChangeDetectionDataset(Dataset):
-    def __init__(self, root_dir: str, tokenizer, max_length: int = 512):
-        """
-        root_dir should be e.g. "easy/train" or "hard/validation"
-        Expects files: problem-*.txt and truth-problem-*.json
-        """
-        self.examples = []
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-
-        # find all txt files
-        for txt_path in glob(os.path.join(root_dir, "problem-*.txt")):
-            base = os.path.splitext(os.path.basename(txt_path))[0]  # e.g. "problem-3"
-            json_path = os.path.join(root_dir, f"truth-{base}.json")
-            if not os.path.exists(json_path):
-                continue
-
-            # read sentences
-            with open(txt_path, encoding="utf-8") as f:
-                lines = [l.strip() for l in f.readlines() if l.strip()]
-            # read labels
-            with open(json_path, encoding="utf-8") as f:
-                data = json.load(f)
-            changes: List[int] = data["changes"]
-
-            # build pairs (sent_i, sent_{i+1})
-            for i, label in enumerate(changes):
-                if i + 1 < len(lines):
-                    self.examples.append({
-                        "sent1": lines[i],
-                        "sent2": lines[i+1],
-                        "label": label,
-                    })
-
-    def __len__(self):
-        return len(self.examples)
-
-    def __getitem__(self, idx):
-        ex = self.examples[idx]
-        # tokenizer will handle truncation and padding (padding done in collator)
-        enc = self.tokenizer(
-            ex["sent1"],
-            ex["sent2"],
-            truncation=True,
-            max_length=self.max_length,
-            #padding="max_length",
-        )
-        enc["labels"] = torch.tensor(ex["label"], dtype=torch.long)
-        return enc
     
 #LOAD MODEL, TOKENIZER
 print(time(), "LOADING MODEL, TOKENIZER")
@@ -131,8 +81,11 @@ bertweet = AutoModelForSequenceClassification.from_pretrained("vinai/bertweet-la
 tokenizer = AutoTokenizer.from_pretrained("vinai/bertweet-large", use_fast=True, 
                                           normalization=True, add_prefix_space=True,)
 
-train_ds = ChangeDetectionDataset(f"{DATASET}/train", tokenizer)
-eval_ds  = ChangeDetectionDataset(f"{DATASET}/validation", tokenizer)
+
+# LOAD DATASETS
+train_ds = TripletChangeDetectionDataset(f"{DATASET}/train", tokenizer)
+eval_ds  = TripletChangeDetectionDataset(f"{DATASET}/validation", tokenizer)
+
 print(time(), "DATASETS LOADED")
 
 
